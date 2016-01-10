@@ -1,0 +1,23 @@
+{
+  "name": "huntnav",
+  "homepage": "https://github.com/obijywk/huntnav",
+  "authors": [
+    "Matt Gruskin <matthew.gruskin@gmail.com>"
+  ],
+  "description": "Mobile web navigation for a scavenger or puzzle hunt like activity",
+  "main": "index.html",
+  "moduleType": [],
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.2.0",
+    "underscore": "~1.8.3",
+    "jquery-mobile-bower": "~1.4.5"
+  }
+}

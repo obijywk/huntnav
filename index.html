@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <script src="bower_components/jquery/dist/jquery.min.js"></script>
+  <script src="bower_components/jquery-mobile-bower/js/jquery.mobile-1.4.5.min.js"></script>
+  <script src="bower_components/underscore/underscore-min.js"></script>
+
+  <script src="drawing.js"></script>
+  <script src="geo.js"></script>
+
+  <link rel="stylesheet" href="bower_components/jquery-mobile-bower/css/jquery.mobile-1.4.5.min.css" />
+
+  <title>Hunt Nav</title>
+
+  <style>
+    #compassdiv {
+      display: flex;
+      justify-content: center;
+    }
+
+    #compasscanvas {
+      width: 50vw;
+      height: 50vw;
+      margin: 2vw;
+      border: 1px solid;
+    }
+
+    #distancediv {
+      display: flex;
+      justify-content: center;
+    }
+
+    #distance {
+      font-size: 20vw;
+      font-family: sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div data-role="page" id="nav">
+    <div data-role="header">
+      <h1>Navigation</h1>
+    </div>
+
+    <div data-role="content">
+      <div id="compassdiv">
+        <canvas id="compasscanvas">
+        </canvas>
+      </div>
+      <div id="distancediv">
+        <span id="distance"></span>
+      </div>
+      <div>Alpha: <span id="alpha"></span></div>
+      <div>Beta: <span id="beta"></span></div>
+      <div>Gamma: <span id="gamma"></span></div>
+      <div>Latitude: <span id="latitude"></span></div>
+      <div>Longitude: <span id="longitude"></span></div>
+
+      <select id="navtarget">
+        <option value="40.740931,-74.002183">111 8th Ave</option>
+        <option value="40.768091,-73.981906">Columbus Circle</option>
+        <option value="40.692802,-74.019012">Castle Williams</option>
+        <option value="40.686917,-74.017123">Gov Island Pier 6</option>
+      </select>
+    </div>
+
+    <script>
+      (function() {
+        var alpha;
+        var devicePosList = [];
+        var targetPos = {lat: 40.740931, lon: -74.002183};
+
+        function updateDistance() {
+          var distance = huntnav.latLonDistance(devicePosList[0], targetPos);
+          $('#distance')[0].innerHTML = Math.floor(distance) + "m";
+        }
+
+        function updateArrows() {
+          if (!alpha || devicePosList.length == 0) {
+            return;
+          }
+
+          var canvas = $('#compasscanvas')[0];
+          huntnav.clearCanvas(canvas);
+
+          huntnav.drawDirectionArrow(canvas, alpha, 'blue');
+
+          var bearing = huntnav.latLonAngle(devicePosList[0], targetPos);
+          var angle = huntnav.deviceRelativeAngle(alpha, bearing);
+          huntnav.drawDirectionArrow(canvas, angle, 'red');
+
+          if (devicePosList.length > 1) {
+            var heading = huntnav.latLonAngle(devicePosList[1], devicePosList[0]);
+            angle = huntnav.deviceRelativeAngle(alpha, heading);
+            huntnav.drawDirectionArrow(canvas, angle, 'green');
+          }
+        }
+
+        $('#navtarget').change(function() {
+          var value = $('#navtarget')[0].value;
+          var parts = value.split(',');
+          targetPos = { lat: Number(parts[0]), lon: Number(parts[1]) };
+          updateDistance();
+          updateArrows();
+        });
+
+        window.addEventListener('deviceorientation', function(event) {
+          $('#alpha')[0].innerHTML = event.alpha;
+          $('#beta')[0].innerHTML = event.beta;
+          $('#gamma')[0].innerHTML = event.gamma;
+
+          alpha = event.alpha;
+          updateArrows();
+        }, true);
+
+        navigator.geolocation.watchPosition(function(position) {
+          var now = Date.now();
+
+          var pos = {
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+            timestamp: now,
+          };
+
+          if (devicePosList.length > 0) {
+            var distanceFromLast = huntnav.latLonDistance(pos, devicePosList[0]);
+            if (distanceFromLast < 2) {
+              // We haven't moved significantly. Ignore this measurement.
+              return;
+            }
+          }
+
+          devicePosList.unshift(pos);
+          if (devicePosList.length > 2) {
+            devicePosList = devicePosList.slice(0, 2);
+          }
+          if (devicePosList.length > 1) {
+            if (now - devicePosList[1].timestamp > 10000) {
+              devicePosList = devicePosList.slice(0, 1);
+            }
+          }
+
+          $('#latitude')[0].innerHTML = devicePosList[0].lat;
+          $('#longitude')[0].innerHTML = devicePosList[0].lon;
+
+          updateDistance();
+          updateArrows();
+        }, null, {
+          enableHighAccuracy: true,
+        });
+      })();
+    </script>
+  </div>
+</body>
+</html>
