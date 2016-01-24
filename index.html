@@ -38,10 +38,34 @@
       font-family: sans-serif;
     }
 
+    #debugdiv {
+      display: none;
+    }
+
     #navlandscapemessage {
       font-size: 4vw;
       text-align: center;
       width: 100%;
+    }
+
+    .questionwrong {
+      display: none;
+    }
+
+    .questionright {
+      display: none;
+    }
+
+    .questionwronganswer {
+      text-decoration: line-through;
+    }
+
+    .questionwronganswer a {
+      color: #ff4040 !important;
+    }
+
+    .questionrightanswer a {
+      color: #008000 !important;
     }
   </style>
 </head>
@@ -90,6 +114,25 @@
     })();
   </script>
 
+  <script>
+    function setupQuestion(containerId, rightAnswer) {
+      $('#' + containerId + ' .questionanswers li').click(function(event) {
+        if ($('#' + containerId + ' .questionright').css('display') == 'block') {
+          return;
+        }
+        if (event.target.innerText == rightAnswer) {
+          event.target.parentElement.classList.add('questionrightanswer');
+          $('#' + containerId + ' .questionanswers li').addClass('ui-state-disabled');
+          $('#' + containerId + ' .questionwrong').css('display', 'none');
+          $('#' + containerId + ' .questionright').css('display', 'block');
+        } else {
+          event.target.parentElement.classList.add('questionwronganswer');
+          $('#' + containerId + ' .questionwrong').css('display', 'block');
+        }
+      });
+    }
+  </script>
+
   <div data-role="page" id="nav">
     <div data-role="header">
       <h1>Navigation</h1>
@@ -100,21 +143,32 @@
         <canvas id="compasscanvas">
         </canvas>
       </div>
+
       <div id="distancediv">
         <span id="distance"></span>
       </div>
-      <div>Alpha: <span id="alpha"></span></div>
-      <div>Beta: <span id="beta"></span></div>
-      <div>Gamma: <span id="gamma"></span></div>
-      <div>Latitude: <span id="latitude"></span></div>
-      <div>Longitude: <span id="longitude"></span></div>
 
-      <select id="navtarget">
-        <option value="40.740931,-74.002183">111 8th Ave</option>
-        <option value="40.768091,-73.981906">Columbus Circle</option>
-        <option value="40.692802,-74.019012">Castle Williams</option>
-        <option value="40.686917,-74.017123">Gov Island Pier 6</option>
-      </select>
+      <button class="ui-btn" id="debugbutton">Debug</button>
+
+      <div id="debugdiv">
+        <div>
+          Latitude: <span id="latitude"></span>
+          Longitude: <span id="longitude"></span>
+        </div>
+
+        <select id="navtarget">
+          <option value="40.740931,-74.002183">111 8th Ave</option>
+          <option value="40.768091,-73.981906">Columbus Circle</option>
+          <option value="40.692802,-74.019012">Castle Williams</option>
+          <option value="40.686917,-74.017123">Gov Island Pier 6</option>
+        </select>
+
+        <ul data-role="listview" data-inset="true">
+          <li><a href="#demostaticpage">Static content demo</a></li>
+          <li><a href="#demoquestionpage">Question demo</a></li>
+          <li><a href="#demolongquestionpage">Long question demo</a></li>
+        </ul>
+      </div>
     </div>
 
     <script>
@@ -149,6 +203,11 @@
           }
         }
 
+        $('#debugbutton').click(function() {
+          $('#debugbutton').css('display', 'none');
+          $('#debugdiv').css('display', 'block');
+        });
+
         $('#navtarget').change(function() {
           var value = $('#navtarget')[0].value;
           var parts = value.split(',');
@@ -158,10 +217,6 @@
         });
 
         window.addEventListener('deviceorientation', function(event) {
-          $('#alpha')[0].innerHTML = event.alpha;
-          $('#beta')[0].innerHTML = event.beta;
-          $('#gamma')[0].innerHTML = event.gamma;
-
           alpha = event.alpha;
           updateArrows();
         }, true);
@@ -214,12 +269,22 @@
     </div>
   </div>
 
-  <div data-role="page" id="content1">
+  <div data-role="page" id="demostaticpage">
     <div data-role="header">
-      <h1>Content One</h1>
+      <h1>Static Content Demo</h1>
     </div>
 
     <div data-role="content">
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+        veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+        commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
+        velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+        occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+        mollit anim id est laborum.
+      </p>
+      <img src="http://classroomclipart.com/images/gallery/Clipart/Trees/green_tree_229.jpg" style="float:right; width: 30vw">
       <p>
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
         tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
@@ -233,23 +298,90 @@
     </div>
   </div>
 
-  <div data-role="page" id="content2">
+  <div data-role="page" id="demoquestionpage">
     <div data-role="header">
-      <h1>Content Two</h1>
+      <h1>Question Demo</h1>
     </div>
 
     <div data-role="content">
       <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-        veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-        commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-        velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
-        occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-        mollit anim id est laborum.
+        Just a little bit of intro text. How many trees are there on the island?
       </p>
-      <p><a href="#nav" data-role="button">Navigate to Next Location</a></p>
+
+      <div id="demoquestion">
+        <ul data-role="listview" data-inset="true" class="questionanswers">
+          <li><a href="#">Ten</a></li>
+          <li><a href="#">Twenty five</a></li>
+          <li><a href="#">A hundred</a></li>
+        </ul>
+
+        <div class="questionwrong">
+          <p>That is not correct. Try again.</p>
+        </div>
+
+        <div class="questionright">
+          <p>
+            Correct! There are a hundred trees. Lorem ipsum dolor sit amet,
+            consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+            labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+            exercitation ullamco laboris nisi ut aliquip ex ea commodo
+            consequat. Duis aute irure dolor in reprehenderit in voluptate velit
+            esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+            cupidatat non proident, sunt in culpa qui officia deserunt mollit
+            anim id est laborum.
+          </p>
+          <p><a href="#nav" data-role="button">Navigate to Next Location</a></p>
+        </div>
+      </div>
     </div>
+
+    <script>
+      setupQuestion('demoquestion', 'A hundred');
+    </script>
+  </div>
+
+  <div data-role="page" id="demolongquestionpage">
+    <div data-role="header">
+      <h1>Long Question Demo</h1>
+    </div>
+
+    <div data-role="content">
+      <p>
+        This question has more possible answers than the other demo. What is your favorite color?
+      </p>
+
+      <div id="demolongquestion">
+        <ul data-role="listview" data-inset="true" class="questionanswers">
+          <li><a href="#">Red</a></li>
+          <li><a href="#">Orange</a></li>
+          <li><a href="#">Yellow</a></li>
+          <li><a href="#">Green</a></li>
+          <li><a href="#">Blue</a></li>
+        </ul>
+
+        <div class="questionwrong">
+          <p>That is not correct. Try again.</p>
+        </div>
+
+        <div class="questionright">
+          <p>
+            Correct! Your favorite color is green. Lorem ipsum dolor sit amet,
+            consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+            labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+            exercitation ullamco laboris nisi ut aliquip ex ea commodo
+            consequat. Duis aute irure dolor in reprehenderit in voluptate velit
+            esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+            cupidatat non proident, sunt in culpa qui officia deserunt mollit
+            anim id est laborum.
+          </p>
+          <p><a href="#nav" data-role="button">Navigate to Next Location</a></p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      setupQuestion('demolongquestion', 'Green');
+    </script>
   </div>
 </body>
 </html>
